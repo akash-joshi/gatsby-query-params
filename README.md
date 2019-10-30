@@ -4,6 +4,10 @@
 
 [![NPM](https://img.shields.io/npm/v/gatsby-query-params.svg)](https://www.npmjs.com/package/gatsby-query-params) [![JavaScript Style Guide](https://img.shields.io/badge/code_style-standard-brightgreen.svg)](https://standardjs.com)
 
+<h3>Inspired by article :</h3>
+
+[https://medium.com/@chrisfitkin/how-to-get-query-string-parameter-values-in-gatsby-f714161104f](https://medium.com/@chrisfitkin/how-to-get-query-string-parameter-values-in-gatsby-f714161104f)
+
 ## Install
 
 ```bash

@@ -1,6 +1,6 @@
 {
   "name": "gatsby-query-params",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Get query params of the current URL in Gatsby",
   "author": "akash-joshi",
   "license": "GPLV3",
