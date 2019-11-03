@@ -5,11 +5,11 @@
   "license": "MIT",
   "private": true,
   "dependencies": {
+    "gatsby-query-params": "^1.0.2",
     "prop-types": "^15.6.2",
-    "react": "^16.4.1",
-    "react-dom": "^16.4.1",
-    "react-scripts": "^1.1.4",
-    "gatsby-query-params": "file:.."
+    "react": "^16.11.0",
+    "react-dom": "^16.8.0",
+    "react-scripts": "^1.1.4"
   },
   "scripts": {
     "start": "react-scripts start",

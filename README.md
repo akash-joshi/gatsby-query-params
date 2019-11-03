@@ -4,35 +4,50 @@
 
 [![NPM](https://img.shields.io/npm/v/gatsby-query-params.svg)](https://www.npmjs.com/package/gatsby-query-params) [![JavaScript Style Guide](https://img.shields.io/badge/code_style-standard-brightgreen.svg)](https://standardjs.com)
 
-<h3>Inspired by article :</h3>
-
-[https://medium.com/@chrisfitkin/how-to-get-query-string-parameter-values-in-gatsby-f714161104f](https://medium.com/@chrisfitkin/how-to-get-query-string-parameter-values-in-gatsby-f714161104f)
-
 ## Install
 
 ```bash
 npm add gatsby-query-params
 ```
 
+## Function Signature
+
+1. getSearchParams - Return query parameters as an object.
+
+```jsx
+import { getSearchParams } from "gatsby-query-params";
+
+const searchParams = getSearchParams();
+```
+
+2. useQueryParam - Return query parameter for a specific key. If it doesn't exist, returns a set default value ( default null ).
+
+```jsx
+import { useQueryParam } from "gatsby-query-params";
+
+const value = useQueryParam(key, defaultValue);
+```
+
 ## Usage
 
 ```jsx
-import React from 'react'
+import React, {useState, useEffect} from 'react'
+import { useQueryParam, getSearchParams } from "gatsby-query-params";
 
-import withRouter from 'gatsby-query-params'
-
-function App({ search }) {
+function App() {
   
-  const { name } = search;
+  const name = useQueryParam("name", "Akash"); // key, defaultValue
+  console.log(name); // log query param
+  console.log(getSearchParams()); // Log all parameters
 
   return (
     <div>
-        Hello {name}
+      Hello
     </div>
   )
 }
 
-export default withRouter(App)
+export default App
 ```
 
 ## License

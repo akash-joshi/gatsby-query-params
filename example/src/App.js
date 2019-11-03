@@ -1,14 +1,17 @@
-import React from 'react'
+import React, {useState, useEffect} from 'react'
+import { useQueryParam } from "gatsby-query-params";
 
-import withRouter from 'gatsby-query-params'
+function App() {
+  
+  const name = useQueryParam("name", "Akash");
 
-function App({ search }) {
-  console.log(search)
+  console.log(name);
+
   return (
     <div>
-        Hello
+        {name}
     </div>
   )
 }
 
-export default withRouter(App)
+export default App
