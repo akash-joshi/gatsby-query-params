@@ -6,7 +6,7 @@ const getSearchParams = () => {
 
   useEffect(() => {
     setSearch(document.location.search ? queryString.parse(document.location.search) : {})
-  }, [])
+  }, [document.location.search])
   
   return searchParams;
 }
