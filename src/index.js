@@ -3,12 +3,15 @@ import queryString from 'query-string'
 
 const getSearchParams = () => {
   const [searchParams, setSearch] = useState({})
+  const inBrowser = typeof document !== 'undefined'
 
   useEffect(() => {
-    setSearch(document.location.search ? queryString.parse(document.location.search) : {})
-  }, [document.location.search])
-  
-  return searchParams;
+    if (inBrowser) {
+      setSearch(document.location.search ? queryString.parse(document.location.search) : {})
+    }
+  }, inBrowser ? [document.location.search] : [])
+
+  return searchParams
 }
 
 const useQueryParam = (key, defaultState) => {
