@@ -50,6 +50,16 @@ function App() {
 export default App
 ```
 
+## Example
+
+1. Run `npm start` on the root folder.
+2. `cd example`
+3. `npm start`
+
+## Where does this library run?
+
+Both Client-Side Rendering (CSR) & Server-Side Rendering (SSR) are supported.
+
 ## License
 
 GPLV3 © [akash-joshi](https://github.com/akash-joshi)
