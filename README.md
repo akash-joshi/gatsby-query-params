@@ -7,7 +7,11 @@
 ## Install
 
 ```bash
-npm add gatsby-query-params
+# Using npm
+npm install gatsby-query-params
+
+# Using Yarn
+yarn add gatsby-query-params
 ```
 
 ## Function Signature
