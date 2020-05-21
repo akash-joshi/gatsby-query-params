@@ -62,4 +62,4 @@ Both Client-Side Rendering (CSR) & Server-Side Rendering (SSR) are supported.
 
 ## License
 
-GPLV3 © [akash-joshi](https://github.com/akash-joshi)
+LGPLV3 © [akash-joshi](https://github.com/akash-joshi)
