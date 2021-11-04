@@ -1,5 +1,9 @@
 import { useEffect, useState } from 'react';
 
+function createCommonjsModule(fn, module) {
+	return module = { exports: {} }, fn(module, module.exports), module.exports;
+}
+
 var strictUriEncode = str => encodeURIComponent(str).replace(/[!'()*]/g, x => `%${x.charCodeAt(0).toString(16).toUpperCase()}`);
 
 var token = '%[a-f0-9]{2}';
@@ -117,12 +121,17 @@ var splitOnFirst = (string, separator) => {
 	];
 };
 
+var queryString = createCommonjsModule(function (module, exports) {
+
+
+
+
 function encoderForArrayFormat(options) {
 	switch (options.arrayFormat) {
 		case 'index':
 			return key => (result, value) => {
 				const index = result.length;
-				if (value === undefined) {
+				if (value === undefined || (options.skipNull && value === null)) {
 					return result;
 				}
 
@@ -138,7 +147,7 @@ function encoderForArrayFormat(options) {
 
 		case 'bracket':
 			return key => (result, value) => {
-				if (value === undefined) {
+				if (value === undefined || (options.skipNull && value === null)) {
 					return result;
 				}
 
@@ -150,21 +159,22 @@ function encoderForArrayFormat(options) {
 			};
 
 		case 'comma':
-			return key => (result, value, index) => {
+		case 'separator':
+			return key => (result, value) => {
 				if (value === null || value === undefined || value.length === 0) {
 					return result;
 				}
 
-				if (index === 0) {
+				if (result.length === 0) {
 					return [[encode(key, options), '=', encode(value, options)].join('')];
 				}
 
-				return [[result, encode(value, options)].join(',')];
+				return [[result, encode(value, options)].join(options.arrayFormatSeparator)];
 			};
 
 		default:
 			return key => (result, value) => {
-				if (value === undefined) {
+				if (value === undefined || (options.skipNull && value === null)) {
 					return result;
 				}
 
@@ -218,9 +228,10 @@ function parserForArrayFormat(options) {
 			};
 
 		case 'comma':
+		case 'separator':
 			return (key, value, accumulator) => {
-				const isArray = typeof value === 'string' && value.split('').indexOf(',') > -1;
-				const newValue = isArray ? value.split(',') : value;
+				const isArray = typeof value === 'string' && value.split('').indexOf(options.arrayFormatSeparator) > -1;
+				const newValue = isArray ? value.split(options.arrayFormatSeparator).map(item => decode(item, options)) : value === null ? value : decode(value, options);
 				accumulator[key] = newValue;
 			};
 
@@ -236,6 +247,12 @@ function parserForArrayFormat(options) {
 	}
 }
 
+function validateArrayFormatSeparator(value) {
+	if (typeof value !== 'string' || value.length !== 1) {
+		throw new TypeError('arrayFormatSeparator must be single character string');
+	}
+}
+
 function encode(value, options) {
 	if (options.encode) {
 		return options.strict ? strictUriEncode(value) : encodeURIComponent(value);
@@ -244,7 +261,7 @@ function encode(value, options) {
 	return value;
 }
 
-function decode$1(value, options) {
+function decode(value, options) {
 	if (options.decode) {
 		return decodeUriComponent(value);
 	}
@@ -275,6 +292,16 @@ function removeHash(input) {
 	return input;
 }
 
+function getHash(url) {
+	let hash = '';
+	const hashStart = url.indexOf('#');
+	if (hashStart !== -1) {
+		hash = url.slice(hashStart);
+	}
+
+	return hash;
+}
+
 function extract(input) {
 	input = removeHash(input);
 	const queryStart = input.indexOf('?');
@@ -300,9 +327,12 @@ function parse(input, options) {
 		decode: true,
 		sort: true,
 		arrayFormat: 'none',
+		arrayFormatSeparator: ',',
 		parseNumbers: false,
 		parseBooleans: false
 	}, options);
+
+	validateArrayFormatSeparator(options.arrayFormatSeparator);
 
 	const formatter = parserForArrayFormat(options);
 
@@ -320,12 +350,12 @@ function parse(input, options) {
 	}
 
 	for (const param of input.split('&')) {
-		let [key, value] = splitOnFirst(param.replace(/\+/g, ' '), '=');
+		let [key, value] = splitOnFirst(options.decode ? param.replace(/\+/g, ' ') : param, '=');
 
 		// Missing `=` should be `null`:
 		// http://w3.org/TR/2012/WD-url-20120524/#collect-url-parameters
-		value = value === undefined ? null : decode$1(value, options);
-		formatter(decode$1(key, options), value, ret);
+		value = value === undefined ? null : options.arrayFormat === 'comma' ? value : decode(value, options);
+		formatter(decode(key, options), value, ret);
 	}
 
 	for (const key of Object.keys(ret)) {
@@ -356,10 +386,10 @@ function parse(input, options) {
 	}, Object.create(null));
 }
 
-var extract_1 = extract;
-var parse_1 = parse;
+exports.extract = extract;
+exports.parse = parse;
 
-var stringify = (object, options) => {
+exports.stringify = (object, options) => {
 	if (!object) {
 		return '';
 	}
@@ -367,11 +397,24 @@ var stringify = (object, options) => {
 	options = Object.assign({
 		encode: true,
 		strict: true,
-		arrayFormat: 'none'
+		arrayFormat: 'none',
+		arrayFormatSeparator: ','
 	}, options);
 
+	validateArrayFormatSeparator(options.arrayFormatSeparator);
+
 	const formatter = encoderForArrayFormat(options);
-	const keys = Object.keys(object);
+
+	const objectCopy = Object.assign({}, object);
+	if (options.skipNull) {
+		for (const key of Object.keys(objectCopy)) {
+			if (objectCopy[key] === undefined || objectCopy[key] === null) {
+				delete objectCopy[key];
+			}
+		}
+	}
+
+	const keys = Object.keys(objectCopy);
 
 	if (options.sort !== false) {
 		keys.sort(options.sort);
@@ -398,19 +441,32 @@ var stringify = (object, options) => {
 	}).filter(x => x.length > 0).join('&');
 };
 
-var parseUrl = (input, options) => {
+exports.parseUrl = (input, options) => {
 	return {
 		url: removeHash(input).split('?')[0] || '',
 		query: parse(extract(input), options)
 	};
 };
 
-var queryString = {
-	extract: extract_1,
-	parse: parse_1,
-	stringify: stringify,
-	parseUrl: parseUrl
+exports.stringifyUrl = (input, options) => {
+	const url = removeHash(input.url).split('?')[0] || '';
+	const queryFromUrl = exports.extract(input.url);
+	const parsedQueryFromUrl = exports.parse(queryFromUrl);
+	const hash = getHash(input.url);
+	const query = Object.assign(parsedQueryFromUrl, input.query);
+	let queryString = exports.stringify(query, options);
+	if (queryString) {
+		queryString = `?${queryString}`;
+	}
+
+	return `${url}${queryString}${hash}`;
 };
+});
+var queryString_1 = queryString.extract;
+var queryString_2 = queryString.parse;
+var queryString_3 = queryString.stringify;
+var queryString_4 = queryString.parseUrl;
+var queryString_5 = queryString.stringifyUrl;
 
 var slicedToArray = function () {
   function sliceIterator(arr, i) {
@@ -456,9 +512,13 @@ var getSearchParams = function getSearchParams() {
       searchParams = _useState2[0],
       setSearch = _useState2[1];
 
+  var inBrowser = typeof document !== 'undefined';
+
   useEffect(function () {
-    setSearch(document.location.search ? queryString.parse(document.location.search) : {});
-  }, []);
+    if (inBrowser) {
+      setSearch(document.location.search ? queryString.parse(document.location.search) : {});
+    }
+  }, inBrowser ? [document.location.search] : []);
 
   return searchParams;
 };
